@@ -1,9 +1,11 @@
+import os
+import qrcode
 from http import HTTPStatus
 from flask import request
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from app_files.models import User
+from app_files.models import User, Url
 
 user_namespace = Namespace('User', description='users namespace')
 
@@ -63,6 +65,15 @@ class Users(Resource):
         if custom_domain:
             if custom_domain[-1] != '/':
                 custom_domain = custom_domain + '/'
+                domain = custom_domain
+                urls = Url.query.filter_by(user_id=user_id).all()
+                for url in urls:
+                    if url.qr_code:
+                        file_path = url.qr_code
+                        if os.path.exists(file_path):
+                            img = qrcode.make(f'{domain}{url.uuid}?referrer=qr')
+                            img.save(file_path)
+                            
             user.custom_domain = custom_domain
 
         user.update()

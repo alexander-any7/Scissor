@@ -163,7 +163,12 @@ class Urls(Resource):
         if url.user_id != user_id:
             abort(HTTPStatus.NOT_FOUND, 'URL Not Found')
         
-        file_path = os.path.join(script_dir, 'qr_codes', f'{uuid}_qrcode.png')
+        if url.qr_code:
+            file_path = url.qr_code
+        else:
+            file_path = os.path.join(script_dir, 'qr_codes', f'{uuid}_qrcode.png')
+            url.qr_code = file_path
+            url.update()
         
         if os.path.exists(file_path):
             return send_file(file_path, mimetype='image/png', as_attachment=True, download_name=f'{uuid}_qrcode.png')
