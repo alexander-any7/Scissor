@@ -193,25 +193,23 @@ class Urls(Resource):
                 long_url = url.long_url
                 referrer = url.referrer
 
-                request_referrer = request.referrer
+                request_referrer = request.args.get('referrer')
 
                 url.clicks += 1
 
                 try:
-                    url_referrer_dict: dict= json.loads(referrer)
+                    url_referrer_dict: dict = json.loads(referrer)
                     
                 except Exception as e:
                     abort(HTTPStatus.INTERNAL_SERVER_ERROR, e)
 
                 if request_referrer:
                     url_referrer_dict[f"{request_referrer}"] = url_referrer_dict.get(request_referrer, 0) + 1
-                    url_referrer_str = json.dumps(url_referrer_dict)
 
                 else:
                     url_referrer_dict["Unknowns"] += 1
-                    url_referrer_str = json.dumps(url_referrer_dict)
 
-
+                url_referrer_str = json.dumps(url_referrer_dict)
                 url.referrer = url_referrer_str
                 url.update()
                 return redirect(long_url)
