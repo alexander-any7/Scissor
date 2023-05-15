@@ -66,6 +66,16 @@ password_reset_input = auth_namespace.model(
 )
 
 
+logged_in_user_password_reset_input = auth_namespace.model(
+    'User',
+    {
+        'current_password' : fields.String(required=True, description="current password"),
+        'new_password_1' : fields.String(required=True, description="new password"),
+        'new_password_2' : fields.String(required=True, description="confirm new password")
+    }
+)
+
+
 @auth_namespace.route('/register')
 class Users(Resource):
  
@@ -181,3 +191,30 @@ class Users(Resource):
                 else:
                     return 'Unable to verify token', HTTPStatus.BAD_REQUEST
         return 'Passwords do not match', HTTPStatus.BAD_REQUEST
+
+
+@auth_namespace.route('/reset-password')
+class Users(Resource):
+
+    @auth_namespace.expect(logged_in_user_password_reset_input)
+    @jwt_required()
+    def post(self):
+        user_id = get_jwt_identity()
+        user = User.query.get_or_404(user_id)
+        data: dict = request.get_json()
+        current_password = data.get('current_password')
+        new_password_1 = data.get('new_password_1')
+        new_password_2 = data.get('new_password_2')
+
+        if current_password and check_password_hash(user.password_hash, current_password):
+            if new_password_1 and new_password_2:
+                if new_password_1 == new_password_2:
+                    user.password_hash = generate_password_hash(new_password_2)
+                    user.update()
+                    return "Password Reset Successfully", HTTPStatus.OK
+                else:
+                    abort(HTTPStatus.BAD_REQUEST, "Passwords do not match")
+            else:
+                abort(HTTPStatus.BAD_REQUEST, "New Password and Confirm New Password cannot be empty")
+        else:
+            abort(HTTPStatus.UNAUTHORIZED, "Current Password is incorrect")
