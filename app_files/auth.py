@@ -4,7 +4,7 @@ from http import HTTPStatus
 from flask import request
 from flask_restx import Namespace, Resource, fields, abort
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 
 from app_files.models import User
 from app_files.utils import TokenService, MailService
@@ -20,6 +20,7 @@ user_register_input = auth_namespace.model(
         'firstname' : fields.String(required=True, description='An firstname for a user'),
         'lastname' : fields.String(required=True, description='An lastname for a user'),
         'password' : fields.String(required=True, description='A password for a user'),
+        'confirm_password' : fields.String(required=True, description='confirm the password'),
     }
 )
 
@@ -77,6 +78,7 @@ class Users(Resource):
         firstname = data.get('firstname')
         lastname = data.get('lastname')
         password = data.get('password')
+        confirm_password = data.get('confirm_password')
 
         if not username:
             abort(HTTPStatus.BAD_REQUEST, 'Username is required')
@@ -90,6 +92,12 @@ class Users(Resource):
         if not lastname:
             abort(HTTPStatus.BAD_REQUEST, 'Lastname is required')
         
+        if not password or not confirm_password:
+            abort(HTTPStatus.BAD_REQUEST, 'Password and Confirm Password cannot be empty')
+
+        if password != confirm_password:
+            abort(HTTPStatus.BAD_REQUEST, "Passwords do not match")
+
         if len(password) < 6:
             abort(HTTPStatus.BAD_REQUEST, 'Password is too short')
 
@@ -103,7 +111,7 @@ class Users(Resource):
         new_user = User(username=username, firstname=firstname, lastname=lastname, email=email, password_hash=password_hash)
         new_user.save()
 
-        return new_user, HTTPStatus.OK
+        return new_user, HTTPStatus.CREATED
     
 
 @auth_namespace.route('/login')
@@ -154,7 +162,7 @@ class Users(Resource):
 
 @auth_namespace.route('/password-reset/<string:token>/<string:uuid>/confirm')
 class Users(Resource):
-
+    
     def post(self, token:str, uuid:str):
         data: dict = request.get_json()
         password_1 = data.get('password_1')
@@ -162,6 +170,8 @@ class Users(Resource):
 
         if password_1 and password_2:
             if password_1 == password_2:
+                if len(password_2) < 6:
+                    abort(HTTPStatus.BAD_REQUEST, 'Password is too short')
                 if TokenService.validate_password_reset_token(token=token, user_id=uuid):
                     user = User.query.get_or_404(uuid)
                     if user:
