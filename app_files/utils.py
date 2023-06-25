@@ -1,16 +1,15 @@
-import ssl
 import smtplib
-import datetime
-import jwt
-from email.message import EmailMessage
+import ssl
 from datetime import datetime, timedelta
-from decouple import config
+from email.message import EmailMessage
 
+import jwt
+from decouple import config
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-secret_key = config('SECRET_KEY')
-DEFAULT_DOMAIN = config('DEFAULT_DOMAIN')
+secret_key = config("SECRET_KEY")
+DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
 
 
 class CredentialsException(Exception):
@@ -18,19 +17,17 @@ class CredentialsException(Exception):
 
 
 class MailService:
-
     @staticmethod
     def send_reset_mail(email: str, token: str, uuid: str) -> bool:
         """
         Send two factor authentication code to hte email address in the kwargs
 
         """
-        sender_email = config('EMAIL_SENDER')
-        sender_password = config('EMAIL_PASSWORD')
+        sender_email = config("EMAIL_SENDER")
+        sender_password = config("EMAIL_PASSWORD")
 
         if not (sender_email and sender_password):
-            raise ValueError(
-                "Sender email and password not found in environment variables")
+            raise ValueError("Sender email and password not found in environment variables")
 
         subject = "Password reset"
         body = f"""
@@ -39,7 +36,7 @@ class MailService:
                 This link is only active for 10 minutes.
                 {DEFAULT_DOMAIN}auth/password-reset/{token}/{uuid}/confirm
 
-                From the Scissor team 
+                From the Scissor team
             """
 
         message = EmailMessage()
@@ -63,7 +60,6 @@ class MailService:
 
 
 class TokenService:
-
     @staticmethod
     def create_password_reset_token(user_id: str) -> str:
         """
@@ -78,23 +74,28 @@ class TokenService:
             "expires_at": expires_at.isoformat(),
         }
 
-        token = jwt.encode(payload, secret_key, algorithm='HS256')
+        token = jwt.encode(payload, secret_key, algorithm="HS256")
         return token
 
     @staticmethod
     def validate_password_reset_token(token: str, user_id: int) -> bool:
         try:
-            payload = jwt.decode(token, secret_key, algorithms=['HS256'])
-            payload_user_id: str = payload.get('user_id')
-            expires_at = payload.get('expires_at')
+            payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+            payload_user_id: str = payload.get("user_id")
+            expires_at = payload.get("expires_at")
 
             try:
                 expires_at_dt = datetime.fromisoformat(expires_at).timestamp()
 
-            except Exception as e:
+            except Exception:
                 expires_at_dt = 0
 
-            if payload_user_id is None or expires_at is None or expires_at_dt < datetime.utcnow().timestamp() or payload_user_id != user_id:
+            if (
+                payload_user_id is None
+                or expires_at is None
+                or expires_at_dt < datetime.utcnow().timestamp()
+                or payload_user_id != user_id
+            ):
                 return False
 
             return True
