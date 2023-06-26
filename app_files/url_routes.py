@@ -42,7 +42,7 @@ url_input_update = url_namespace.model(
 url_output = url_namespace.model("Url", {"short_url": fields.String(), "long_url": fields.String()})
 
 
-@url_namespace.route("/shorten_url")
+@url_namespace.route("/shorten-url")
 class Urls(Resource):
     @jwt_required()
     @url_namespace.expect(url_input)
@@ -75,7 +75,7 @@ class Urls(Resource):
         return new_url, HTTPStatus.CREATED
 
 
-@url_namespace.route("/all_urls")
+@url_namespace.route("/all-urls")
 class Urls(Resource): # noqa
     @jwt_required()
     @url_namespace.marshal_list_with(url_output)
