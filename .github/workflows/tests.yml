@@ -23,6 +23,7 @@ jobs:
       DATABASE_URL : ${{ secrets.DATABASE_URL }}
       FLASK_DEBUG : ${{ secrets.FLASK_DEBUG }}
       DEBUG : ${{ secrets.DEBUG }}
+      CACHE_DEFAULT_TIMEOUT : ${{ secrets.CACHE_DEFAULT_TIMEOUT }}
       ACCESS_TOKEN_EXPIRES_MINUTES : ${{ secrets.ACCESS_TOKEN_EXPIRES_MINUTES }}
 
     steps:
