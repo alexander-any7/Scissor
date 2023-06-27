@@ -11,6 +11,7 @@ ecdsa==0.18.0
 flake8==6.0.0
 Flask==2.2.3
 Flask-Caching==2.0.2
+Flask-Cors==4.0.0
 Flask-JWT-Extended==4.4.4
 Flask-Migrate==4.0.4
 flask-restx==1.1.0
