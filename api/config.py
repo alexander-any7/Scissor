@@ -23,12 +23,13 @@ class Config:
     ALGORITHM = config("ALGORITHM")
     ACCESS_TOKEN_EXPIRES_MINUTES = config("ACCESS_TOKEN_EXPIRES_MINUTES")
     DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
+    CACHE_DEFAULT_TIMEOUT = config("CACHE_DEFAULT_TIMEOUT")
 
 
 class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(PARENT_DIR, "scissor.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False
     DEBUG = config("FLASK_DEBUG", cast=bool)
 
 

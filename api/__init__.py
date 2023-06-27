@@ -8,7 +8,7 @@ from api.config import config_dict
 from api.models import Url, User
 from api.url_routes import redirect_namespace, url_namespace
 from api.user_routes import user_namespace
-from api.utils import db
+from api.utils import cache, db
 
 
 def create_app(config=config_dict["dev"]):
@@ -23,9 +23,10 @@ def create_app(config=config_dict["dev"]):
             "description": "add a JWT with ** Bearer &lt;JWT&gt; to authorize",
         }
     }
-    api = Api(app, title="Scissor API", description="", authorizations=authorizations, security="Bearer Auth")  # noqa
+    api = Api(app, title="Scissor API", description="", authorizations=authorizations, security="Bearer Auth")
 
     db.init_app(app)
+    cache.init_app(app)
 
     migrate = Migrate(app, db)  # noqa
     jwt = JWTManager(app)  # noqa

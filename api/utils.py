@@ -3,6 +3,8 @@ import smtplib
 import ssl
 from datetime import datetime, timedelta
 from email.message import EmailMessage
+from flask_caching import Cache
+
 
 import jwt
 import qrcode
@@ -10,6 +12,8 @@ from decouple import config
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
+cache = Cache(config={"CACHE_TYPE": "RedisCache"})
+
 secret_key = config("SECRET_KEY")
 DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
 
