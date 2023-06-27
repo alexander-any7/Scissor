@@ -15,12 +15,15 @@ jobs:
         python-version: ["3.11", "3.10", "3.9"]
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      JWT_SECRET_KEY : ${{ secrets.JWT_SECRET_KEY  }}
       ALGORITHM: ${{ secrets.ALGORITHM }}
       EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
       EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
       DEFAULT_DOMAIN: ${{ secrets.DEFAULT_DOMAIN }}
       DATABASE_URL : ${{ secrets.DATABASE_URL }}
       FLASK_DEBUG : ${{ secrets.FLASK_DEBUG }}
+      DEBUG : ${{ secrets.DEBUG }}
+      ACCESS_TOKEN_EXPIRES_MINUTES : ${{ secrets.ACCESS_TOKEN_EXPIRES_MINUTES }}
 
     steps:
     - uses: actions/checkout@v3
