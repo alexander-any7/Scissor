@@ -2,8 +2,7 @@ from http import HTTPStatus
 
 import validators
 from flask import request
-from flask_jwt_extended import (create_access_token, create_refresh_token,
-                                get_jwt_identity, jwt_required)
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
 from flask_restx import Namespace, Resource, abort, fields
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -231,3 +230,12 @@ class Users(Resource):  # noqa
                 abort(HTTPStatus.BAD_REQUEST, "New Password and Confirm New Password cannot be empty")
         else:
             abort(HTTPStatus.UNAUTHORIZED, "Current Password is incorrect")
+
+
+@auth_namespace.route("/refresh")
+class Refresh(Resource):  # noqa
+    @jwt_required(refresh=True)
+    def post(self):
+        current_user = get_jwt_identity()
+        new_access_token = create_access_token(identity=current_user)
+        return {"access_token": new_access_token}, HTTPStatus.OK

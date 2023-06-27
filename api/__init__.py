@@ -2,6 +2,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_restx import Api
+from flask_cors import CORS
 
 from api.auth import auth_namespace
 from api.config import config_dict
@@ -14,6 +15,7 @@ from api.utils import cache, db
 def create_app(config=config_dict["dev"]):
     app = Flask(__name__)
     app.config.from_object(config)
+    CORS(app)
 
     authorizations = {
         "Bearer Auth": {

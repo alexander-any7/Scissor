@@ -297,3 +297,9 @@ class Urls(Resource):  # noqa
                 return redirect(long_url)
         else:
             abort(HTTPStatus.NOT_FOUND, "URL Not Found")
+
+
+@redirect_namespace.route("/hello/test/")
+class Hello(Resource):
+    def get(self):
+        return {"message": "Hello World"}, HTTPStatus.OK
