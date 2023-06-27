@@ -74,6 +74,14 @@ logged_in_user_password_reset_input = auth_namespace.model(
     },
 )
 
+user_password_reset_confirm = auth_namespace.model(
+    "User",
+    {
+        "password_1": fields.String(required=True, description="new password"),
+        "password_2": fields.String(required=True, description="confirm new password"),
+    },
+)
+
 
 @auth_namespace.route("/register")
 class Users(Resource):
@@ -174,6 +182,7 @@ class Users(Resource):  # noqa
 
 @auth_namespace.route("/password-reset/<string:token>/<string:uuid>/confirm")
 class Users(Resource):  # noqa
+    @auth_namespace.expect(user_password_reset_confirm)
     def post(self, token: str, uuid: str):
         session = db.session
         data: dict = request.get_json()

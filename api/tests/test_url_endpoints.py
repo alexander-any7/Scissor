@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash
 
 from api import create_app
 from api.config import config_dict
-from api.models import Url, User
+from api.models import DeletedUrl, Url, User
 from api.utils import db
 
 user_data = {
@@ -64,6 +64,8 @@ class URLTestCase(unittest.TestCase):
     shorten_url = "/urls/shorten-url"
     generate_qr_code = "/urls/generate-qr-code/{uuid}"
     redirect = "/{uuid}"
+    deleted_urls = "urls/deleted-urls"
+    restore_url = "/urls/restore-url/{id}"
     update_url_data = {"url": "https://web.facebook.com/"}
 
     def setUp(self):
@@ -146,6 +148,26 @@ class URLTestCase(unittest.TestCase):
         token = create_access_token(identity=user.id)
         headers = {"Authorization": f"Bearer {token}"}
         response = self.client.get(self.generate_qr_code.format(uuid=url.uuid), headers=headers)
-        print('here', response.json)
+        print("here", response.json)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(os.path.exists(url.qr_code), True)
+
+    def test_get_deleted_urls_success(self):
+        user, url = create_url()
+        token = create_access_token(identity=user.id)
+        headers = {"Authorization": f"Bearer {token}"}
+        self.client.delete(self.one_url.format(uuid=url.uuid), headers=headers)
+        deleted_urls = DeletedUrl.query.all()
+        response = self.client.get(self.deleted_urls, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(deleted_urls), 1)
+
+    def test_restore_url_success(self):
+        user, url = create_url()
+        token = create_access_token(identity=user.id)
+        headers = {"Authorization": f"Bearer {token}"}
+        self.client.delete(self.one_url.format(uuid=url.uuid), headers=headers)
+        response = self.client.get(self.restore_url.format(id=url.id), headers=headers)
+        deleted_urls = DeletedUrl.query.all()
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(len(deleted_urls), 0)

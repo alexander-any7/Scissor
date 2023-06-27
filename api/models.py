@@ -14,6 +14,7 @@ class User(db.Model):
     date_joined = db.Column(db.DateTime(), default=datetime.utcnow)
     custom_domain = db.Column(db.Text(), nullable=True)
     urls = db.relationship("Url", backref="url", lazy=True)
+    deleted_urls = db.relationship("DeletedUrl", backref="deleted_url", lazy=True)
 
     def __repr__(self) -> str:
         return self.username
@@ -44,6 +45,30 @@ class Url(db.Model):
 
     def __repr__(self) -> str:
         return self.uuid
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+        db.session.commit()
+
+
+class DeletedUrl(db.Model):
+    __tablename__ = "deleted_urls"
+    id = db.Column(db.Integer(), primary_key=True)
+    long_url = db.Column(db.String(1000), nullable=False, unique=False)
+    created_at = db.Column(db.DateTime())
+    deleted_at = db.Column(db.DateTime(), default=datetime.utcnow)
+    user_id = db.Column(db.Integer(), db.ForeignKey("users.id"), nullable=False)
+
+    def __repr__(self) -> str:
+        return self.long_url
 
     def save(self):
         db.session.add(self)

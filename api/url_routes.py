@@ -11,9 +11,8 @@ from flask import redirect, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restx import Namespace, Resource, abort, fields
 
-from api.models import Url, User
+from api.models import DeletedUrl, Url, User
 from api.utils import db
-
 
 DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
 
@@ -52,6 +51,16 @@ url_output = url_namespace.model(
         "clicks": fields.Integer(),
         "referrer": fields.String(),
         "qr_code": fields.String(),
+    },
+)
+
+deleted_url_output = url_namespace.model(
+    "Url",
+    {
+        "id": fields.Integer(),
+        "long_url": fields.String(),
+        "created_at": fields.DateTime(),
+        "deleted_at": fields.DateTime(),
     },
 )
 
@@ -103,6 +112,52 @@ class Urls(Resource):  # noqa
         return urls, HTTPStatus.OK
 
 
+@url_namespace.route("/deleted-urls")
+class Urls(Resource):  # noqa
+    @jwt_required()
+    @url_namespace.marshal_list_with(deleted_url_output)
+    def get(self):
+        user = get_jwt_identity()
+        urls = DeletedUrl.query.filter_by(user_id=user).all()
+        return urls, HTTPStatus.OK
+
+
+@url_namespace.route("/restore-url/<int:id>")
+class Urls(Resource):  # noqa
+    @jwt_required()
+    @url_namespace.marshal_with(url_output)
+    def get(self, id):
+        user = get_jwt_identity()
+        url_to_restore = DeletedUrl.query.filter_by(id=id).first()
+
+        if not url_to_restore or url_to_restore.user_id != user:
+            abort(HTTPStatus.NOT_FOUND, "Not Found")
+
+        user_domain = User.query.filter_by(id=user).first().custom_domain
+        domain = f"{user_domain}" if user_domain else request.host_url
+
+        if not url_to_restore or not validators.url(url_to_restore.long_url, public=True):
+            abort(HTTPStatus.BAD_REQUEST, "A valid URL is required")
+
+        url_to_restore.delete()
+
+        existing_urls = Url.query.filter_by(long_url=url_to_restore.long_url).all()
+
+        for s_url in existing_urls:
+            if s_url.user_id == user:
+                s_url.short_url = f"{domain}{s_url.uuid}"
+                return s_url, HTTPStatus.OK
+
+        short_url = shortuuid.random(length=6)
+
+        new_url = Url(user_id=user, uuid=short_url, long_url=url_to_restore.long_url)
+        new_url.referrer = json.dumps({"Unknowns": 0})
+        new_url.save()
+
+        new_url.short_url = f"{domain}{short_url}"
+        return new_url, HTTPStatus.CREATED
+
+
 @url_namespace.route("/<string:uuid>")
 class Urls(Resource):  # noqa
     @jwt_required()
@@ -151,6 +206,8 @@ class Urls(Resource):  # noqa
         file_path = url_to_delete.qr_code
         if file_path and os.path.exists(file_path):
             os.remove(file_path)
+        deleted_url = DeletedUrl(user_id=user, long_url=url_to_delete.long_url, created_at=url_to_delete.created_at)
+        deleted_url.save()
         url_to_delete.delete()
         return "", HTTPStatus.NO_CONTENT
 
@@ -221,5 +278,4 @@ class Urls(Resource):  # noqa
                 url.update()
                 return redirect(long_url)
         else:
-            abort(HTTPStatus.NOT_FOUND, "URL Not Found")
             abort(HTTPStatus.NOT_FOUND, "URL Not Found")
