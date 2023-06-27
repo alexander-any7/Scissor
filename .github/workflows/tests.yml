@@ -19,6 +19,8 @@ jobs:
       EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
       EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
       DEFAULT_DOMAIN: ${{ secrets.DEFAULT_DOMAIN }}
+      DATABASE_URL : ${{ secrets.DATABASE_URL }}
+      FLASK_DEBUG : ${{ secrets.FLASK_DEBUG }}
 
     steps:
     - uses: actions/checkout@v3
