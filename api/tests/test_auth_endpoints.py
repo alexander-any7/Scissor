@@ -1,11 +1,12 @@
 import unittest
 
+from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash
 
-from app_files import create_app
-from app_files.config import config_dict
-from app_files.models import User
-from app_files.utils import db
+from api import create_app
+from api.config import config_dict
+from api.models import User
+from api.utils import TokenService, db
 
 user_data = {
     "username": "testuser",
@@ -30,6 +31,7 @@ def create_user(data):
         password_hash=password_hash,
     )
     user.save()
+    return user
 
 
 class RegisterTestCase(unittest.TestCase):
@@ -142,3 +144,55 @@ class LoginTestCase(unittest.TestCase):
         data["password"] = "wrong_password"
         response = self.client.post(self.login_endpoint, json=data)
         self.assertEqual(response.status_code, 401)
+
+
+class PasswordResetTestCase(unittest.TestCase):
+    password_reset_request = "/auth/password-reset-request"
+    reset_password = "/auth/reset-password"
+    password_reset_confirm = "/auth/password-reset/{token}/{uuid}/confirm"
+    username = {"username_or_email": user_data["username"]}
+    email = {"username_or_email": user_data["email"]}
+
+    def setUp(self):
+        self.app = create_app(config=config_dict["testing"])
+        self.app_contxt = self.app.app_context()
+        self.app_contxt.push()
+        self.client = self.app.test_client()
+        db.create_all()
+
+    def tearDown(self):
+        db.drop_all()
+        self.app_contxt.pop()
+        self.app = None
+        self.client = None
+
+    def test_send_password_reset_email_success_using_username(self):
+        create_user(user_data)
+        response = self.client.post(self.password_reset_request, json=self.username)
+        self.assertEqual(response.status_code, 200)
+
+    def test_send_password_reset_email_success_using_email(self):
+        create_user(user_data)
+        response = self.client.post(self.password_reset_request, json=self.email)
+        self.assertEqual(response.status_code, 200)
+
+    def test_send_password_reset_email_fail_user_not_found(self):
+        response = self.client.post(self.password_reset_request, json=self.email)
+        self.assertEqual(response.status_code, 406)
+
+    def test_reset_password_confirm_success(self):
+        data = {"password_1": "newpassword", "password_2": "newpassword"}
+        user = create_user(user_data)
+        user_id = str(user.id)
+        token = TokenService.create_password_reset_token(user_id)
+        response = self.client.post(self.password_reset_confirm.format(token=token, uuid=user_id), json=data)
+        self.assertEqual(response.status_code, 200)
+
+    def test_reset_password_success_logged_in_user(self):
+        data = {"current_password": "password", "new_password_1": "newpassword", "new_password_2": "newpassword"}
+        user = create_user(user_data)
+        token = create_access_token(identity=user.id)
+        headers = {"Authorization": f"Bearer {token}"}
+        response = self.client.post(self.reset_password, json=data, headers=headers)
+        print(response.json)
+        self.assertEqual(response.status_code, 200)

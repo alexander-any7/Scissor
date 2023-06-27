@@ -5,6 +5,10 @@ from decouple import config
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+QR_CODE_DIRECTORY = f"{BASE_DIR}/qr_codes"
+
+if not os.path.exists(QR_CODE_DIRECTORY):
+    os.makedirs(QR_CODE_DIRECTORY)
 
 uri = config("DATABASE_URL")  # or other relevant config var
 if uri.startswith("postgres://"):

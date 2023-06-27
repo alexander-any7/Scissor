@@ -3,12 +3,12 @@ from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_restx import Api
 
-from app_files.auth import auth_namespace
-from app_files.config import config_dict
-from app_files.models import Url, User
-from app_files.url_routes import redirect_namespace, url_namespace
-from app_files.user_routes import user_namespace
-from app_files.utils import db
+from api.auth import auth_namespace
+from api.config import config_dict
+from api.models import Url, User
+from api.url_routes import redirect_namespace, url_namespace
+from api.user_routes import user_namespace
+from api.utils import db
 
 
 def create_app(config=config_dict["dev"]):
@@ -39,5 +39,4 @@ def create_app(config=config_dict["dev"]):
     def make_shell_context():
         return {"db": db, "User": User, "Url": Url}
 
-    return app
     return app

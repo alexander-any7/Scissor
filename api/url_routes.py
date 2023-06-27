@@ -11,7 +11,9 @@ from flask import redirect, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restx import Namespace, Resource, abort, fields
 
-from app_files.models import Url, User
+from api.models import Url, User
+from api.utils import db
+
 
 DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
 
@@ -39,7 +41,19 @@ url_input_update = url_namespace.model(
     },
 )
 
-url_output = url_namespace.model("Url", {"short_url": fields.String(), "long_url": fields.String()})
+url_output = url_namespace.model(
+    "Url",
+    {
+        "uuid": fields.String(),
+        "short_url": fields.String(),
+        "long_url": fields.String(),
+        "created_at": fields.DateTime(),
+        "updated_at": fields.DateTime(),
+        "clicks": fields.Integer(),
+        "referrer": fields.String(),
+        "qr_code": fields.String(),
+    },
+)
 
 
 @url_namespace.route("/shorten-url")
@@ -76,7 +90,7 @@ class Urls(Resource):
 
 
 @url_namespace.route("/all-urls")
-class Urls(Resource): # noqa
+class Urls(Resource):  # noqa
     @jwt_required()
     @url_namespace.marshal_list_with(url_output)
     def get(self):
@@ -90,7 +104,7 @@ class Urls(Resource): # noqa
 
 
 @url_namespace.route("/<string:uuid>")
-class Urls(Resource): # noqa
+class Urls(Resource):  # noqa
     @jwt_required()
     @url_namespace.marshal_list_with(url_output)
     def get(self, uuid):
@@ -134,18 +148,23 @@ class Urls(Resource): # noqa
 
         if url_to_delete.user_id != user:
             abort(HTTPStatus.NOT_FOUND, "URL Not Found")
-
+        file_path = url_to_delete.qr_code
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
         url_to_delete.delete()
         return "", HTTPStatus.NO_CONTENT
 
 
 @url_namespace.route("/generate-qr-code/<string:uuid>")
-class Urls(Resource): # noqa
+class Urls(Resource):  # noqa
     @jwt_required()
     def get(self, uuid):
+        session = db.session
         user_id = get_jwt_identity()
+        user = session.get(User, user_id)
+        if user is None:
+            abort(404, description="User Not Found")
         url = Url.query.filter_by(uuid=uuid).first_or_404(description="URL Not Found")
-        user = User.query.get_or_404(user_id)
         custom_domain = user.custom_domain
         domain = custom_domain if custom_domain else request.host_url
 
@@ -169,7 +188,7 @@ class Urls(Resource): # noqa
 
 
 @redirect_namespace.route("<string:short_url>")
-class Urls(Resource): # noqa
+class Urls(Resource):  # noqa
     def get(self, short_url):
         request_domain = request.host
         custom_domain_exists = User.query.filter_by(custom_domain=request_domain).first()

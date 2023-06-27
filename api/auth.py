@@ -2,12 +2,13 @@ from http import HTTPStatus
 
 import validators
 from flask import request
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                get_jwt_identity, jwt_required)
 from flask_restx import Namespace, Resource, abort, fields
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app_files.models import User
-from app_files.utils import MailService, TokenService
+from api.models import User
+from api.utils import MailService, TokenService, db
 
 auth_namespace = Namespace("Auth", description="auth namespace")
 
@@ -124,7 +125,7 @@ class Users(Resource):
 
 
 @auth_namespace.route("/login")
-class Users(Resource): # noqa
+class Users(Resource):  # noqa
     @auth_namespace.expect(user_login_input)
     @auth_namespace.marshal_with(user_login_output)
     def post(self):
@@ -148,7 +149,7 @@ class Users(Resource): # noqa
 
 
 @auth_namespace.route("/password-reset-request")
-class Users(Resource): # noqa
+class Users(Resource):  # noqa
     @auth_namespace.expect(password_reset_input)
     def post(self):
         data: dict = request.get_json()
@@ -160,7 +161,7 @@ class Users(Resource): # noqa
         )
 
         if not user:
-            abort(HTTPStatus.NOT_FOUND, "A user with that username or email not found!")
+            abort(HTTPStatus.NOT_ACCEPTABLE, "A user with that username or email not found!")
 
         user_id = str(user.id)
         user_email = user.email
@@ -168,12 +169,13 @@ class Users(Resource): # noqa
         if token:
             is_mail_sent = MailService.send_reset_mail(email=user_email, token=token, uuid=user_id)
             if is_mail_sent:
-                return "An email has been sent with instructions to reset your password.", HTTPStatus.OK
+                return {"message": "An email has been sent with instructions to reset your password."}, HTTPStatus.OK
 
 
 @auth_namespace.route("/password-reset/<string:token>/<string:uuid>/confirm")
-class Users(Resource): # noqa
+class Users(Resource):  # noqa
     def post(self, token: str, uuid: str):
+        session = db.session
         data: dict = request.get_json()
         password_1 = data.get("password_1")
         password_2 = data.get("password_2")
@@ -183,23 +185,26 @@ class Users(Resource): # noqa
                 if len(password_2) < 6:
                     abort(HTTPStatus.BAD_REQUEST, "Password is too short")
                 if TokenService.validate_password_reset_token(token=token, user_id=uuid):
-                    user = User.query.get_or_404(uuid)
+                    user = session.get(User, uuid)
                     if user:
                         user.password_hash = generate_password_hash(password_2)
                         user.update()
-                        return "Password Reset Successfully", HTTPStatus.OK
+                        return {"message": "Password Reset Successfully"}, HTTPStatus.OK
                 else:
-                    return "Unable to verify token", HTTPStatus.BAD_REQUEST
-        return "Passwords do not match", HTTPStatus.BAD_REQUEST
+                    return {"message": "Unable to verify token"}, HTTPStatus.BAD_REQUEST
+        return {"message": "Passwords do not match"}, HTTPStatus.BAD_REQUEST
 
 
 @auth_namespace.route("/reset-password")
-class Users(Resource): # noqa
+class Users(Resource):  # noqa
     @auth_namespace.expect(logged_in_user_password_reset_input)
     @jwt_required()
     def post(self):
+        session = db.session
         user_id = get_jwt_identity()
-        user = User.query.get_or_404(user_id)
+        user = session.get(User, user_id)
+        if user is None:
+            abort(404, description="User Not Found")
         data: dict = request.get_json()
         current_password = data.get("current_password")
         new_password_1 = data.get("new_password_1")
@@ -210,12 +215,10 @@ class Users(Resource): # noqa
                 if new_password_1 == new_password_2:
                     user.password_hash = generate_password_hash(new_password_2)
                     user.update()
-                    return "Password Reset Successfully", HTTPStatus.OK
+                    return {"message": "Password Reset Successfully"}, HTTPStatus.OK
                 else:
                     abort(HTTPStatus.BAD_REQUEST, "Passwords do not match")
             else:
                 abort(HTTPStatus.BAD_REQUEST, "New Password and Confirm New Password cannot be empty")
         else:
-            abort(HTTPStatus.UNAUTHORIZED, "Current Password is incorrect")
-            abort(HTTPStatus.UNAUTHORIZED, "Current Password is incorrect")
             abort(HTTPStatus.UNAUTHORIZED, "Current Password is incorrect")

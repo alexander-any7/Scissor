@@ -1,9 +1,11 @@
+import os
 import smtplib
 import ssl
 from datetime import datetime, timedelta
 from email.message import EmailMessage
 
 import jwt
+import qrcode
 from decouple import config
 from flask_sqlalchemy import SQLAlchemy
 
@@ -19,10 +21,15 @@ class CredentialsException(Exception):
 class MailService:
     @staticmethod
     def send_reset_mail(email: str, token: str, uuid: str) -> bool:
-        """
-        Send two factor authentication code to hte email address in the kwargs
+        """Send authentication mail to the email address
 
+        Args:
+            email: str
+            token: str
+            uuid: str
+        Return: True: Bool
         """
+
         sender_email = config("EMAIL_SENDER")
         sender_password = config("EMAIL_PASSWORD")
 
@@ -62,11 +69,14 @@ class MailService:
 class TokenService:
     @staticmethod
     def create_password_reset_token(user_id: str) -> str:
-        """
-        Generate a token for a user.
-        :param user_id: The id of a user
+        """Generate a jwt token with the user_id as the identity
 
+        Args:
+            user_id: str
+        Return:
+            token: str
         """
+
         expires_at = datetime.utcnow() + timedelta(minutes=10)
 
         payload = {
@@ -79,6 +89,15 @@ class TokenService:
 
     @staticmethod
     def validate_password_reset_token(token: str, user_id: int) -> bool:
+        """Validate a password reset token and checks if user_id
+            in the payload is the same as the user_id passed to the function
+
+        Args:
+            token: str
+            user_id: int
+        Return: True: bool
+        """
+
         try:
             payload = jwt.decode(token, secret_key, algorithms=["HS256"])
             payload_user_id: str = payload.get("user_id")
@@ -108,3 +127,23 @@ class TokenService:
 
         except Exception as e:
             raise e
+
+
+def update_qr_codes(user_id, base_url, model):
+    """Updates all qrcode images of a user on domain update
+
+    Args:
+        user_id: int
+        base_url: the protocol + custom domain eg. https://example.com
+    Return:
+        True
+    """
+
+    urls = model.query.filter_by(user_id=user_id).all()
+    for url in urls:
+        if url.qr_code:
+            file_path = url.qr_code
+            if file_path and os.path.exists(file_path):
+                img = qrcode.make(f"{base_url}{url.uuid}?referrer=qr")
+                img.save(file_path)
+    return True

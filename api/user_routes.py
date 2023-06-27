@@ -1,14 +1,13 @@
-import os
 from http import HTTPStatus
 from urllib.parse import urlparse
 
-import qrcode
 import validators
 from flask import request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restx import Namespace, Resource, abort, fields
 
-from app_files.models import Url, User
+from api.models import Url, User
+from api.utils import db, update_qr_codes
 
 supported_protocols = ["http", "https"]
 
@@ -21,6 +20,9 @@ user_update_input = user_namespace.model(
         "firstname": fields.String(required=True, description="An firstname for a user"),
         "lastname": fields.String(required=True, description="An lastname for a user"),
         "custom_domain": fields.String(required=False, description="A preferred custom domain"),
+        "remove_custom_domain": fields.Boolean(
+            required=False, description="A true or false value to remove the custom domain"
+        ),
     },
 )
 
@@ -42,8 +44,11 @@ class Users(Resource):
     @user_namespace.expect(user_update_input)
     @user_namespace.marshal_with(user_update_output)
     def get(self):
+        session = db.session
         user_id = get_jwt_identity()
-        user = User.query.get_or_404(user_id)
+        user = session.get(User, user_id)
+        if user is None:
+            abort(404, description="User Not Found")
         return user, HTTPStatus.OK
 
 
@@ -53,13 +58,16 @@ class Users(Resource):  # noqa
     @user_namespace.expect(user_update_input)
     @user_namespace.marshal_with(user_update_output)
     def put(self):
+        session = db.session
         user_id = get_jwt_identity()
-        user = User.query.get_or_404(user_id)
+        user = session.get(User, user_id)
+        if user is None:
+            abort(404, description="User Not Found")
         data: dict = request.get_json()
         firstname = data.get("firstname")
         lastname = data.get("lastname")
         user_domain = data.get("custom_domain")
-        remove_custom_domain = data.get('remove_custom_domain')
+        remove_custom_domain = data.get("remove_custom_domain")
 
         user.firstname = firstname if firstname else user.firstname
         user.lastname = lastname if lastname else user.lastname
@@ -77,16 +85,13 @@ class Users(Resource):  # noqa
                 abort(HTTPStatus.BAD_REQUEST, f"{protocol} is not a supported protocol")
 
             if custom_domain[-1] != "/":
-                custom_domain = custom_domain + "/"
-                urls = Url.query.filter_by(user_id=user_id).all()
-                for url in urls:
-                    if url.qr_code:
-                        file_path = url.qr_code
-                        if os.path.exists(file_path):
-                            img = qrcode.make(f"{protocol}{custom_domain}{url.uuid}?referrer=qr")
-                            img.save(file_path)
+                custom_domain = f"{protocol}://{custom_domain}/"
+                update_qr_codes(user_id, custom_domain, Url)
 
-            user.custom_domain = f"{protocol}://{custom_domain}"
+            user.custom_domain = custom_domain
+
+        if remove_custom_domain:
+            update_qr_codes(user_id, request.host_url, Url)
 
         user.update()
 
