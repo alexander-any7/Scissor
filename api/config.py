@@ -22,6 +22,7 @@ class Config:
     JWT_SECRET_KEY = config("JWT_SECRET_KEY")
     ALGORITHM = config("ALGORITHM")
     ACCESS_TOKEN_EXPIRES_MINUTES = config("ACCESS_TOKEN_EXPIRES_MINUTES")
+    DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
 
 
 class DevConfig(Config):
