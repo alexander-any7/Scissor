@@ -293,6 +293,7 @@ class Urls(Resource):  # noqa
                 url_referrer_str = json.dumps(url_referrer_dict)
                 url.referrer = url_referrer_str
                 url.update()
+                cache.delete(f"user_{url.user_id}_urls")
                 return redirect(long_url)
         else:
             abort(HTTPStatus.NOT_FOUND, "URL Not Found")
