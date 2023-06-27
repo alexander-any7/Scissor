@@ -13,7 +13,6 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.11]
-    
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       ALGORITHM: ${{ secrets.ALGORITHM }}
@@ -47,5 +46,6 @@ jobs:
     
     - name: Run Tests and Generate Coverage Report
       run: |
+        run: python -c 'import os
         coverage run -m pytest
         coverage report
