@@ -49,6 +49,11 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8
+
+    - name: Set up Redis
+      uses: shogo82148/actions-setup-redis@v1
+      with:
+        redis-version: '6.x' 
     
     - name: Run Tests and Generate Coverage Report
       run: |
