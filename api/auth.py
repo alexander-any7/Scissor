@@ -101,12 +101,6 @@ class Users(Resource):
         if not validators.email(email):
             abort(HTTPStatus.BAD_REQUEST, "Email is not valid")
 
-        if not firstname:
-            abort(HTTPStatus.BAD_REQUEST, "Firstname is required")
-
-        if not lastname:
-            abort(HTTPStatus.BAD_REQUEST, "Lastname is required")
-
         if not password or not confirm_password:
             abort(HTTPStatus.BAD_REQUEST, "Password and Confirm Password cannot be empty")
 

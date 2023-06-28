@@ -12,8 +12,8 @@ from api.utils import db
 user_data = {
     "username": "testuser",
     "email": "testuser@email.com",
-    "firstname": "firstname",
-    "lastname": "lastname",
+    "firstname": None,
+    "lastname": None,
     "password": "password",
     "confirm_password": "password",
     "custom_domain": "https://example.com",

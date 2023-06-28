@@ -13,7 +13,7 @@ from api.utils import db
 user_data = {
     "username": "testuser",
     "email": "testuser@email.com",
-    "firstname": "firstname",
+    "firstname": None,
     "lastname": "lastname",
     "password": "password",
     "confirm_password": "password",
@@ -25,7 +25,7 @@ second_user_data = {
     "username": "testuser2",
     "email": "testuser2@email.com",
     "firstname": "firstname",
-    "lastname": "lastname",
+    "lastname": None,
     "password": "password",
     "confirm_password": "password",
 }
