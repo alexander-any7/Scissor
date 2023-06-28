@@ -38,12 +38,6 @@ user_register_output = auth_namespace.model(
 user_login_output = auth_namespace.model(
     "User",
     {
-        "id": fields.Integer(),
-        "username": fields.String(),
-        "email": fields.String(),
-        "firstname": fields.String(),
-        "lastname": fields.String(),
-        "date_joined": fields.DateTime(),
         "access_token": fields.String(),
         "refresh_token": fields.String(),
         "token_type": fields.String(),

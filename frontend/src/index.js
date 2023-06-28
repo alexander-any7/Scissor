@@ -1,4 +1,5 @@
 import React from 'react';
+import './styles/main.css'
 import ReactDOM from 'react-dom/client';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavBar from './components/MyNavBar';
@@ -13,14 +14,16 @@ import LoginPage from './components/Login';
 
 const App = () => {
     return (
+
         <Router>
             <MyNavBar />
             <Routes>
-                <Route path='/login' element={<LoginPage/>} />
-                <Route path='/register' element={ <RegisterPage/>} />
+                <Route path='/login' element={<LoginPage />} />
+                <Route path='/register' element={<RegisterPage />} />
                 <Route path='/' element={<HomePage />} />
             </Routes>
         </Router>
+
     )
 }
 
