@@ -9,7 +9,8 @@ const LoggedInLinks = () => {
   return (
     <>
       <Nav.Link to='/'>Home</Nav.Link>
-      <Nav.Link href="#" onClick={()=>{logout()}}>Logout</Nav.Link>
+      <Nav.Link href="#" onClick={() => { logout() }}>Logout</Nav.Link>
+      <Nav.Link href='/shorten-url'>Shorten Url</Nav.Link>
     </>
   )
 }
