@@ -10,6 +10,7 @@ from flask import redirect, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restx import Namespace, Resource, abort, fields
 
+from api.config import BASE_DIR
 from api.models import DeletedUrl, Url, User
 from api.utils import cache, db
 
@@ -17,6 +18,7 @@ DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
 
 # Get the directory of the script file
 script_dir = os.path.dirname(os.path.abspath(__file__))
+qr_codes_dir = f"{os.path.dirname(BASE_DIR)}\\frontend\\public\\qr_codes"
 
 
 url_namespace = Namespace("Url", description="urls namespace")
@@ -35,6 +37,7 @@ url_input_update = url_namespace.model(
     "Url",
     {
         "url": fields.String(required=True, description="url to shorten"),
+        "title": fields.String(required=False),
         "use_default_domain": fields.Boolean(description="To use default domain", default=False),
     },
 )
@@ -45,11 +48,13 @@ url_output = url_namespace.model(
         "uuid": fields.String(),
         "short_url": fields.String(),
         "long_url": fields.String(),
+        "title": fields.String(),
         "created_at": fields.DateTime(),
         "updated_at": fields.DateTime(),
         "clicks": fields.Integer(),
         "referrer": fields.String(),
         "qr_code": fields.String(),
+        "has_qr_code": fields.Boolean(),
     },
 )
 
@@ -73,12 +78,16 @@ class Urls(Resource):
         user = get_jwt_identity()
         data: dict = request.get_json()
         url = data.get("url")
+        title = data.get("title")
         user_domain = User.query.filter_by(id=user).first().custom_domain
 
         domain = f"{user_domain}" if user_domain else request.host_url
 
         if not url or not validators.url(url, public=True):
             abort(HTTPStatus.BAD_REQUEST, "A valid URL is required")
+
+        if not title or len(title) > 20:
+            abort(HTTPStatus.BAD_REQUEST, "Title is required and should not be longer than 10 characters")
 
         existing_urls = Url.query.filter_by(long_url=url).all()
 
@@ -89,7 +98,7 @@ class Urls(Resource):
 
         short_url = shortuuid.random(length=6)
 
-        new_url = Url(user_id=user, uuid=short_url, long_url=url)
+        new_url = Url(user_id=user, uuid=short_url, long_url=url, title=title)
         new_url.referrer = json.dumps({"Unknowns": 0})
         new_url.save()
 
@@ -104,9 +113,9 @@ class Urls(Resource):  # noqa
     @url_namespace.marshal_list_with(url_output)
     def get(self):
         user = get_jwt_identity()
-        url_cache = cache.get(f"user_{user}_urls")
-        if url_cache:
-            return url_cache, HTTPStatus.OK
+        # url_cache = cache.get(f"user_{user}_urls")
+        # if url_cache:
+        #     return url_cache, HTTPStatus.OK
         user_domain = User.query.filter_by(id=user).first().custom_domain
         domain = f"{user_domain}" if user_domain else request.host_url
         urls = Url.query.filter_by(user_id=user).all()
@@ -198,8 +207,10 @@ class Urls(Resource):  # noqa
 
         data: dict = request.get_json()
         new_url = data.get("url")
+        new_title = data.get("title")
 
         url_to_update.long_url = new_url if new_url else url_to_update.long_url
+        url_to_update.title = new_title if new_title else url_to_update.title
         url_to_update.update()
 
         url_to_update.short_url = f"{domain}{url_to_update.uuid}"
@@ -248,8 +259,9 @@ class Urls(Resource):  # noqa
         if url.qr_code:
             file_path = url.qr_code
         else:
-            file_path = os.path.join(script_dir, "qr_codes", f"{uuid}_qrcode.png")
+            file_path = f"{qr_codes_dir}\\{uuid}_qrcode.png"
             url.qr_code = file_path
+            url.has_qr_code = True
             url.update()
 
         if os.path.exists(file_path):

@@ -15,7 +15,7 @@ from api.utils import cache, db
 def create_app(config=config_dict["dev"]):
     app = Flask(__name__)
     app.config.from_object(config)
-    CORS(app)
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     authorizations = {
         "Bearer Auth": {

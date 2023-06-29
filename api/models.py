@@ -37,6 +37,8 @@ class Url(db.Model):
     uuid = db.Column(db.String(10), nullable=False, unique=True)
     long_url = db.Column(db.String(1000), nullable=False, unique=False)
     qr_code = db.Column(db.String(500), nullable=True, unique=True)
+    title = db.Column(db.String(20), nullable=False, default='URL Title')
+    has_qr_code = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     clicks = db.Column(db.Integer(), default=0)

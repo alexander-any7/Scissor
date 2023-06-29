@@ -31,6 +31,7 @@ second_user_data = {
 }
 
 test_url = "https://www.google.com/"
+test_title = "Test Title"
 
 
 def create_user(custom_data=None):
@@ -53,7 +54,7 @@ def create_user(custom_data=None):
 def create_url():
     user = create_user()
     short_url = shortuuid.random(length=6)
-    url = Url(user_id=user.id, uuid=short_url, long_url=test_url)
+    url = Url(user_id=user.id, uuid=short_url, long_url=test_url, title=test_title)
     url.save()
     return user, url
 
@@ -66,7 +67,7 @@ class URLTestCase(unittest.TestCase):
     redirect = "/{uuid}"
     deleted_urls = "urls/deleted-urls"
     restore_url = "/urls/restore-url/{id}"
-    update_url_data = {"url": "https://web.facebook.com/"}
+    update_url_data = {"url": "https://web.facebook.com/", "title": "Test updated title"}
 
     def setUp(self):
         self.app = create_app(config=config_dict["testing"])
