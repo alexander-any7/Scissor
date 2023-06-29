@@ -14,7 +14,7 @@ from decouple import config
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
+cache = Cache(config={'CACHE_TYPE': 'RedisCache'})
 limiter = Limiter(
     get_remote_address,
     default_limits=["1000 per day", "100 per hour"],
