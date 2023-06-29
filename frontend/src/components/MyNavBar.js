@@ -8,9 +8,10 @@ import { useAuth, logout } from "../auth";
 const LoggedInLinks = () => {
   return (
     <>
-      <Nav.Link to='/'>Home</Nav.Link>
+      <Nav.Link href='/'>Home</Nav.Link>
       <Nav.Link href="#" onClick={() => { logout() }}>Logout</Nav.Link>
       <Nav.Link href='/shorten-url'>Shorten Url</Nav.Link>
+      <Nav.Link href="/profile">My Profile</Nav.Link>
     </>
   )
 }

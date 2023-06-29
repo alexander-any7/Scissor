@@ -12,6 +12,7 @@ import HomePage from './components/Home';
 import RegisterPage from './components/Register';
 import LoginPage from './components/Login';
 import ShortenUrl from "./components/ShortenURL";
+import UserProfile from "./components/User";
 
 const App = () => {
     return (
@@ -23,6 +24,7 @@ const App = () => {
                 <Route path='/register' element={<RegisterPage />} />
                 <Route path='/' element={<HomePage />} />
                 <Route path='/shorten-url' element={<ShortenUrl />} />
+                <Route path='/profile' element={<UserProfile />} />
             </Routes>
         </Router>
 

@@ -209,6 +209,9 @@ class Urls(Resource):  # noqa
         new_url = data.get("url")
         new_title = data.get("title")
 
+        if new_url and not validators.url(new_url, public=True):
+            abort(HTTPStatus.BAD_REQUEST, "A valid URL is required")
+
         url_to_update.long_url = new_url if new_url else url_to_update.long_url
         url_to_update.title = new_title if new_title else url_to_update.title
         url_to_update.update()

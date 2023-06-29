@@ -4,37 +4,51 @@ import Button from 'react-bootstrap/Button';
 
 
 
-const Url = ({ uuid, short_url, qr_code, clicks, long_url }) => {
+const Url = ({title, clicks, onClick }) => {
     return (
         <div className="url">
             <Card style={{ width: '18rem' }} className="mb-5">
-                <Card.Img variant="top" src={qr_code} />
                 <Card.Body>
-                    <Card.Title>{uuid }</Card.Title>
+                    <Card.Title>{title}</Card.Title>
                     <Card.Text>
                         Clicks: {clicks}
-                        <br></br>
-                        Long Url: {long_url}
                     </Card.Text>
-                    <Button variant="primary">See Details</Button>
+                    <Button variant="primary" onClick={onClick}>See Details</Button>
                 </Card.Body>
             </Card>
         </div>
     )
 }
 
-const DetailedUrl = ({ uuid, short_url, qr_code, clicks, long_url, updated_at, referrer }) => {
+const Referrer = (referrer) => {
+    // const myObject = JSON.parse(referrer);
+    const myObject = referrer;
+    return (
+      <>
+        {Object.entries(myObject).map(([key, value]) => (
+          <p key={key}>
+            {key}: {value}
+          </p>
+        ))}
+      </>
+    );
+  };
+
+const DetailedUrl = ({ uuid, short_url, clicks, long_url, updated_at, referrer, has_qr_code, created_at }) => {
+    
     return (
         <div className="detailed-url">
-            <p>{short_url}</p>
-            <p>{uuid}</p>
-            <p>{qr_code}</p>
-            <p>{clicks}</p>
-            <p>{long_url}</p>
-            <p>{updated_at}</p>
-            <p>{referrer}</p>
+            {has_qr_code  &&  <img src={`/qr_codes/${uuid}_qrcode.png`}  className="d-block mx-auto"/>}
+            <p>Short URL: {short_url}</p>
+            <p>Long URL: {long_url}</p>
+            <p>Clicks: {clicks}</p>
+            <p>Created At: {created_at}</p>
+            <p>Updated At: {updated_at}</p>
+            <Referrer referrer={ referrer} />
         </div>
     )
 }
+
+  
 
 export { Url, DetailedUrl }
