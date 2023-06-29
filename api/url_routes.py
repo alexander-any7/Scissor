@@ -12,7 +12,7 @@ from flask_restx import Namespace, Resource, abort, fields
 
 from api.config import BASE_DIR
 from api.models import DeletedUrl, Url, User
-from api.utils import cache, db
+from api.utils import cache, db, limiter
 
 DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
 
@@ -71,6 +71,8 @@ deleted_url_output = url_namespace.model(
 
 @url_namespace.route("/shorten-url")
 class Urls(Resource):
+    @limiter.limit("100/minute")
+    @cache.cached(timeout=60)
     @jwt_required()
     @url_namespace.expect(url_input)
     @url_namespace.marshal_with(url_output)
@@ -103,30 +105,29 @@ class Urls(Resource):
         new_url.save()
 
         new_url.short_url = f"{domain}{short_url}"
-        cache.delete(f"user_{user}_urls")
         return new_url, HTTPStatus.CREATED
 
 
 @url_namespace.route("/all-urls")
 class Urls(Resource):  # noqa
+    @limiter.limit("10/minute")
+    @cache.cached(timeout=60)
     @jwt_required()
     @url_namespace.marshal_list_with(url_output)
     def get(self):
         user = get_jwt_identity()
-        # url_cache = cache.get(f"user_{user}_urls")
-        # if url_cache:
-        #     return url_cache, HTTPStatus.OK
         user_domain = User.query.filter_by(id=user).first().custom_domain
         domain = f"{user_domain}" if user_domain else request.host_url
         urls = Url.query.filter_by(user_id=user).all()
         for url in urls:
             url.short_url = f"{domain}{url.uuid}"
-        cache.set(f"user_{user}_urls", urls)
         return urls, HTTPStatus.OK
 
 
 @url_namespace.route("/deleted-urls")
 class Urls(Resource):  # noqa
+    @limiter.limit("10/minute")
+    @cache.cached(timeout=60)
     @jwt_required()
     @url_namespace.marshal_list_with(deleted_url_output)
     def get(self):
@@ -137,6 +138,8 @@ class Urls(Resource):  # noqa
 
 @url_namespace.route("/restore-url/<int:id>")
 class Urls(Resource):  # noqa
+    @limiter.limit("10/minute")
+    @cache.cached(timeout=60)
     @jwt_required()
     @url_namespace.marshal_with(url_output)
     def get(self, id):
@@ -168,21 +171,17 @@ class Urls(Resource):  # noqa
         new_url.save()
 
         new_url.short_url = f"{domain}{short_url}"
-        cache.delete(f"user_{user}_urls")
         return new_url, HTTPStatus.CREATED
 
 
 @url_namespace.route("/<string:uuid>")
 class Urls(Resource):  # noqa
+    @limiter.limit("10/minute")
+    @cache.cached(timeout=60)
     @jwt_required()
     @url_namespace.marshal_list_with(url_output)
     def get(self, uuid):
         user = get_jwt_identity()
-        url_cache = cache.get(f"user_{user}_urls")
-        if url_cache:
-            url = next((url for url in url_cache if url.uuid == uuid), None)
-            if url:
-                return url, HTTPStatus.OK
         user_domain = User.query.filter_by(id=user).first().custom_domain
         domain = f"{user_domain}" if user_domain else request.host_url
         url = Url.query.filter_by(uuid=uuid).first_or_404(description="URL Not Found")
@@ -193,6 +192,8 @@ class Urls(Resource):  # noqa
         url.short_url = f"{domain}{url.uuid}"
         return url, HTTPStatus.OK
 
+    @limiter.limit("10/minute")
+    @cache.cached(timeout=60)
     @jwt_required()
     @url_namespace.marshal_list_with(url_output)
     @url_namespace.expect(url_input_update)
@@ -217,11 +218,10 @@ class Urls(Resource):  # noqa
         url_to_update.update()
 
         url_to_update.short_url = f"{domain}{url_to_update.uuid}"
-
-        cache.delete(f"user_{user}_urls")
-
         return url_to_update, HTTPStatus.OK
 
+    @limiter.limit("10/minute")
+    @cache.cached(timeout=60)
     @jwt_required()
     def delete(self, uuid):
         user = get_jwt_identity()
@@ -235,24 +235,19 @@ class Urls(Resource):  # noqa
         deleted_url = DeletedUrl(user_id=user, long_url=url_to_delete.long_url, created_at=url_to_delete.created_at)
         deleted_url.save()
         url_to_delete.delete()
-        cache.delete(f"user_{user}_urls")
         return "", HTTPStatus.NO_CONTENT
 
 
 @url_namespace.route("/generate-qr-code/<string:uuid>")
 class Urls(Resource):  # noqa
+    @limiter.limit("10/minute")
+    @cache.cached(timeout=60)
     @jwt_required()
     def get(self, uuid):
         session = db.session
         user_id = get_jwt_identity()
         user = session.get(User, user_id)
-        if user is None:
-            abort(404, description="User Not Found")
-        url_cache = cache.get(f"user_{user}_urls")
-        if url_cache:
-            url = next((url for url in url_cache if url.uuid == uuid), None)
-        else:
-            url = Url.query.filter_by(uuid=uuid).first_or_404(description="URL Not Found")
+        url = Url.query.filter_by(uuid=uuid).first_or_404(description="URL Not Found")
         custom_domain = user.custom_domain
         domain = custom_domain if custom_domain else request.host_url
 
@@ -278,6 +273,8 @@ class Urls(Resource):  # noqa
 
 @redirect_namespace.route("<string:short_url>")
 class Urls(Resource):  # noqa
+    @limiter.limit("10/minute")
+    @cache.cached(timeout=60)
     def get(self, short_url):
         request_domain = request.host
         custom_domain_exists = User.query.filter_by(custom_domain=request_domain).first()
@@ -308,7 +305,6 @@ class Urls(Resource):  # noqa
                 url_referrer_str = json.dumps(url_referrer_dict)
                 url.referrer = url_referrer_str
                 url.update()
-                cache.delete(f"user_{url.user_id}_urls")
                 return redirect(long_url)
         else:
             abort(HTTPStatus.NOT_FOUND, "URL Not Found")
@@ -316,5 +312,7 @@ class Urls(Resource):  # noqa
 
 @redirect_namespace.route("/hello/test/")
 class Hello(Resource):
+    @limiter.limit("10/minute")
+    @cache.cached(timeout=60)
     def get(self):
         return {"message": "Hello World"}, HTTPStatus.OK

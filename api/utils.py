@@ -4,6 +4,8 @@ import ssl
 from datetime import datetime, timedelta
 from email.message import EmailMessage
 from flask_caching import Cache
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 
 import jwt
@@ -12,7 +14,12 @@ from decouple import config
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-cache = Cache(config={"CACHE_TYPE": "RedisCache"})
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
+limiter = Limiter(
+    get_remote_address,
+    default_limits=["1000 per day", "50 per hour"],
+    storage_uri="memory://",
+)
 
 secret_key = config("SECRET_KEY")
 DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
