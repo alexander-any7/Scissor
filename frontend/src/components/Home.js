@@ -66,6 +66,7 @@ const LoggedInHome = () => {
         fetch('/urls/all-urls', requestOptions)
             .then(res => res.json())
             .then(data => {
+                console.log(data)
                 setUrls(data)
             })
             .catch(err => console.log(err))
@@ -112,7 +113,7 @@ const LoggedInHome = () => {
                     handleShow(urlUuid)
                 }
                 else {
-                    window.location.reload()
+                    const reload = window.location.reload()
                 }
             })
             .catch(err => console.log(err))
@@ -161,6 +162,7 @@ const LoggedInHome = () => {
     try {
         return (
             <>
+                <h1>Welcome To Scissor</h1>
                 <Modal show={show} onHide={handleClose} size='md'>
                     <Modal.Header closeButton>
                         <Modal.Title>{urlTitle}</Modal.Title>
@@ -223,7 +225,7 @@ const LoggedInHome = () => {
                         </Button>
                     </Modal.Footer>
                 </Modal>
-                <h1>URLs Here</h1>
+                <h1>{urls.length} URLs</h1>
                 <Container>
                     <Row>
                         {
@@ -251,7 +253,7 @@ const LoggedInHome = () => {
 const LoggedOutHome = () => {
     return (
         <>
-            <h1>DO SOMETHING FOR LOGGED OUT USER</h1>
+            <h1>Welcome To Scissor</h1>
             <Link to='/register' className="btn btn-primary">Get Started</Link>
         </>
     )
@@ -263,7 +265,6 @@ const HomePage = () => {
 
     return (
         <div className="home container mt-4">
-            <h1>Welcome To Scissor</h1>
             {logged ? <LoggedInHome /> : <LoggedOutHome />}
         </div>
     )

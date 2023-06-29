@@ -79,7 +79,7 @@ class Users(Resource):  # noqa
             protocol = parsed_domain.scheme
 
             if not validators.domain(custom_domain):
-                abort(HTTPStatus.BAD_REQUEST, f"{custom_domain} is not a valid domain")
+                abort(HTTPStatus.BAD_REQUEST, f"{user_domain} not a valid domain")
 
             if protocol and protocol not in supported_protocols:
                 abort(HTTPStatus.BAD_REQUEST, f"{protocol} is not a supported protocol")
