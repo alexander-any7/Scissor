@@ -241,7 +241,6 @@ class Urls(Resource):  # noqa
 @url_namespace.route("/generate-qr-code/<string:uuid>")
 class Urls(Resource):  # noqa
     @limiter.limit("10/minute")
-    @cache.cached(timeout=60)
     @jwt_required()
     def get(self, uuid):
         session = db.session
