@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth";
+import { useAuth, logout } from "../auth";
 import { Url, DetailedUrl } from "./Url";
 import Container from 'react-bootstrap/Container';
 import { useForm } from "react-hook-form";
@@ -22,6 +22,8 @@ const LoggedInHome = () => {
     const [serverResponse, setServerResponse] = useState('');
     const [updateResponse, setUpdateResponse] = useState('');
     const [alertVariant, setAlertVariant] = useState('');
+    const [fullscreen, setFullscreen] = useState(true);
+    const [confirmDeleteShow, setConfirmDeleteShow] = useState(false);
     // url details
     const [urlTitle, setUrlTitle] = useState('');
     const [urlReferrer, setUrlReferrer] = useState('');
@@ -31,6 +33,7 @@ const LoggedInHome = () => {
     const [urlShortUrl, setUrlShortUrl] = useState('')
     const [urlHasQrCode, setUrlHasQrCode] = useState()
     const [urlCreatedAt, setUrlCreatedAt] = useState()
+
 
 
     const {
@@ -66,7 +69,6 @@ const LoggedInHome = () => {
         fetch('/urls/all-urls', requestOptions)
             .then(res => res.json())
             .then(data => {
-                console.log(data)
                 setUrls(data)
             })
             .catch(err => console.log(err))
@@ -153,16 +155,42 @@ const LoggedInHome = () => {
                 if (res.status === 204) {
                     getUserUrls()
                     handleClose()
+                    setConfirmDeleteShow(false);
+
                 }
             })
             .then(data => { })
             .catch(err => console.log(err))
     }
 
+    const cancelConfirmDelete = () => {
+        setConfirmDeleteShow(false)
+    }
+
+    const confirmDelete = () => {
+        setFullscreen('sm-down');
+        handleClose()
+        setConfirmDeleteShow(true);
+    }
+
     try {
         return (
             <>
-                <h1>Welcome To Scissor</h1>
+                <h1 className="text-center">Welcome To Scissor</h1>
+                <Modal show={confirmDeleteShow} fullscreen={fullscreen} onHide={() => setConfirmDeleteShow(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Confirm URL Delete</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body> Are you sure you want to delete <span className="fw-bold">{urlTitle}</span></Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={cancelConfirmDelete}>
+                            Cancel
+                        </Button>
+                        <Button variant="danger" onClick={() => { deleteURL(urlUuid) }}>
+                            Delete
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
                 <Modal show={show} onHide={handleClose} size='md'>
                     <Modal.Header closeButton>
                         <Modal.Title>{urlTitle}</Modal.Title>
@@ -217,15 +245,15 @@ const LoggedInHome = () => {
                             Save Changes
                         </Button>
 
-                        <Button variant="secondary" onClick={() => { generateQrCode(urlUuid) }}>
+                        {!urlHasQrCode && <Button variant="secondary" onClick={() => { generateQrCode(urlUuid) }}>
                             Generate QR Code
-                        </Button>
-                        <Button variant="danger" onClick={() => { deleteURL(urlUuid) }}>
+                        </Button>}
+                        <Button variant="danger" onClick={confirmDelete}>
                             Delete
                         </Button>
                     </Modal.Footer>
                 </Modal>
-                <h1>{urls.length} URLs</h1>
+                <h4 className="text-center">You have {urls.length} URLs</h4>You have 
                 <Container>
                     <Row>
                         {
@@ -247,13 +275,14 @@ const LoggedInHome = () => {
         )
     } catch (errors) {
         navigate('/login')
+        logout()
     }
 }
 
 const LoggedOutHome = () => {
     return (
         <>
-            <h1>Welcome To Scissor</h1>
+            <h1 className="text-center">Welcome To Scissor</h1>
             <Link to='/register' className="btn btn-primary">Get Started</Link>
         </>
     )

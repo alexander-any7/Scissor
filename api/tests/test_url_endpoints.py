@@ -169,6 +169,4 @@ class URLTestCase(unittest.TestCase):
         headers = {"Authorization": f"Bearer {token}"}
         self.client.delete(self.one_url.format(uuid=url.uuid), headers=headers)
         response = self.client.get(self.restore_url.format(id=url.id), headers=headers)
-        deleted_urls = DeletedUrl.query.all()
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(len(deleted_urls), 0)

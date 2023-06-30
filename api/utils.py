@@ -1,20 +1,20 @@
+import json
 import os
 import smtplib
 import ssl
 from datetime import datetime, timedelta
 from email.message import EmailMessage
-from flask_caching import Cache
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
 
 import jwt
 import qrcode
 from decouple import config
+from flask_caching import Cache
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-cache = Cache(config={'CACHE_TYPE': 'RedisCache'})
+cache = Cache(config={"CACHE_TYPE": "RedisCache"})
 limiter = Limiter(
     get_remote_address,
     default_limits=["1000 per day", "100 per hour"],
@@ -158,3 +158,11 @@ def update_qr_codes(user_id, base_url, model):
                 img = qrcode.make(f"{base_url}{url.uuid}?referrer=qr")
                 img.save(file_path)
     return True
+
+
+def convert_referrer(url):
+    try:
+        referrer = json.loads(url.referrer)
+        url.referrer = referrer
+    except Exception:
+        pass

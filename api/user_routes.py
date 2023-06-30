@@ -15,7 +15,7 @@ user_namespace = Namespace("User", description="users namespace")
 
 
 user_update_input = user_namespace.model(
-    "RegisterUser",
+    "Update User",
     {
         "firstname": fields.String(required=True, description="An firstname for a user"),
         "lastname": fields.String(required=True, description="An lastname for a user"),
@@ -27,7 +27,7 @@ user_update_input = user_namespace.model(
 )
 
 user_update_output = user_namespace.model(
-    "User",
+    "User Schema",
     {
         "username": fields.String(),
         "email": fields.String(),
@@ -39,7 +39,7 @@ user_update_output = user_namespace.model(
 
 
 @user_namespace.route("/profile")
-class Users(Resource):
+class Profile(Resource):
     @jwt_required()
     @user_namespace.expect(user_update_input)
     @user_namespace.marshal_with(user_update_output)
@@ -53,7 +53,7 @@ class Users(Resource):
 
 
 @user_namespace.route("/update-profile")
-class Users(Resource):  # noqa
+class UpdateProfile(Resource):  # noqa
     @jwt_required()
     @user_namespace.expect(user_update_input)
     @user_namespace.marshal_with(user_update_output)

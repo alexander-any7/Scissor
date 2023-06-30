@@ -31,7 +31,6 @@ const LoginPage = () => {
         fetch('/auth/login', requestOptions)
             .then(res => res.json())
             .then(data => {
-                console.log(data.access_token)
                 login(data)
                 navigate('/')
             })

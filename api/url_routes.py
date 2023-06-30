@@ -12,7 +12,7 @@ from flask_restx import Namespace, Resource, abort, fields
 
 from api.config import BASE_DIR
 from api.models import DeletedUrl, Url, User
-from api.utils import cache, db, limiter
+from api.utils import cache, db, limiter, convert_referrer
 
 DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
 
@@ -27,14 +27,14 @@ redirect_namespace = Namespace("Redirect", description="redirect namespace")
 # redis_client = redis.Redis(host='localhost', port=5000, db=0)
 
 url_input = url_namespace.model(
-    "Url",
+    "Shorten Url",
     {
         "url": fields.String(required=True, description="url to shorten"),
     },
 )
 
 url_input_update = url_namespace.model(
-    "Url",
+    "Update Url",
     {
         "url": fields.String(required=True, description="url to shorten"),
         "title": fields.String(required=False),
@@ -43,7 +43,7 @@ url_input_update = url_namespace.model(
 )
 
 url_output = url_namespace.model(
-    "Url",
+    "Url Output",
     {
         "uuid": fields.String(),
         "short_url": fields.String(),
@@ -52,14 +52,14 @@ url_output = url_namespace.model(
         "created_at": fields.DateTime(),
         "updated_at": fields.DateTime(),
         "clicks": fields.Integer(),
-        "referrer": fields.String(),
+        "referrer": fields.Raw(),
         "qr_code": fields.String(),
         "has_qr_code": fields.Boolean(),
     },
 )
 
 deleted_url_output = url_namespace.model(
-    "Url",
+    "Deleted Url Output",
     {
         "id": fields.Integer(),
         "long_url": fields.String(),
@@ -70,7 +70,7 @@ deleted_url_output = url_namespace.model(
 
 
 @url_namespace.route("/shorten-url")
-class Urls(Resource):
+class ShortenUrl(Resource):
     @limiter.limit("100/minute")
     @cache.cached(timeout=60)
     @jwt_required()
@@ -109,7 +109,7 @@ class Urls(Resource):
 
 
 @url_namespace.route("/all-urls")
-class Urls(Resource):  # noqa
+class AllUrls(Resource):  # noqa
     @limiter.limit("10/minute")
     @cache.cached(timeout=60)
     @jwt_required()
@@ -120,12 +120,13 @@ class Urls(Resource):  # noqa
         domain = f"{user_domain}" if user_domain else request.host_url
         urls = Url.query.filter_by(user_id=user).all()
         for url in urls:
+            convert_referrer(url)
             url.short_url = f"{domain}{url.uuid}"
         return urls, HTTPStatus.OK
 
 
 @url_namespace.route("/deleted-urls")
-class Urls(Resource):  # noqa
+class DeletedUrls(Resource):  # noqa
     @limiter.limit("10/minute")
     @cache.cached(timeout=60)
     @jwt_required()
@@ -137,7 +138,7 @@ class Urls(Resource):  # noqa
 
 
 @url_namespace.route("/restore-url/<int:id>")
-class Urls(Resource):  # noqa
+class RestoreDeletedUrl(Resource):  # noqa
     @limiter.limit("10/minute")
     @cache.cached(timeout=60)
     @jwt_required()
@@ -188,12 +189,12 @@ class Urls(Resource):  # noqa
 
         if url.user_id != user:
             abort(HTTPStatus.NOT_FOUND, "URL Not Found")
-
+        convert_referrer(url)
         url.short_url = f"{domain}{url.uuid}"
         return url, HTTPStatus.OK
 
     @limiter.limit("10/minute")
-    @cache.cached(timeout=60)
+    @cache.cached(timeout=10)
     @jwt_required()
     @url_namespace.marshal_list_with(url_output)
     @url_namespace.expect(url_input_update)
@@ -217,6 +218,7 @@ class Urls(Resource):  # noqa
         url_to_update.title = new_title if new_title else url_to_update.title
         url_to_update.update()
 
+        convert_referrer(url_to_update)
         url_to_update.short_url = f"{domain}{url_to_update.uuid}"
         return url_to_update, HTTPStatus.OK
 
@@ -239,7 +241,7 @@ class Urls(Resource):  # noqa
 
 
 @url_namespace.route("/generate-qr-code/<string:uuid>")
-class Urls(Resource):  # noqa
+class GenerateQRCode(Resource):  # noqa
     @limiter.limit("10/minute")
     @jwt_required()
     def get(self, uuid):
@@ -271,9 +273,8 @@ class Urls(Resource):  # noqa
 
 
 @redirect_namespace.route("<string:short_url>")
-class Urls(Resource):  # noqa
-    @limiter.limit("10/minute")
-    @cache.cached(timeout=60)
+class Redirect(Resource):  # noqa
+    @limiter.limit("100/minute")
     def get(self, short_url):
         request_domain = request.host
         custom_domain_exists = User.query.filter_by(custom_domain=request_domain).first()
@@ -310,7 +311,7 @@ class Urls(Resource):  # noqa
 
 
 @redirect_namespace.route("/hello/test/")
-class Hello(Resource):
+class Test(Resource):
     @limiter.limit("10/minute")
     @cache.cached(timeout=60)
     def get(self):
