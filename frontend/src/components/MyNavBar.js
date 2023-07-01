@@ -32,7 +32,7 @@ const MyNavBar = () => {
   return (
     <Navbar bg="primary" data-bs-theme="dark">
       <Container>
-        <Navbar.Brand href="/">SCut</Navbar.Brand>
+        <Navbar.Brand href="/">Scissor</Navbar.Brand>
         <Nav className="me-auto">
           {logged ? <LoggedInLinks /> : <LoggedOutLinks />}
         </Nav>
