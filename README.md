@@ -3,6 +3,8 @@
 Brief is the new black, this is what inspires the team at Scissor. In today’s world, it’s important to keep things as short as possible, and this applies to more concepts than you may realize. From music, speeches, to wedding receptions, brief is the new black. Scissor is a simple tool which makes URLs as short as possible. Scissor thinks it can disrupt the URL-shortening industry and give the likes of bit.ly and ow.ly a run for their money within 2 years.
 
 
+The main goal of this project was to learn **React** and how to integrate it with a **Python** backend, in this case, **Flask**.
+
 ## Implementation Guide:
 - **URL Shortening**:
 Scissor allows users to shorten URLs by pasting a long URL into the Scissor platform and a shorter URL gets automatically generated. The shortened URL is designed to be as short as possible, making it easy to share on social media or through other channels.
@@ -13,7 +15,9 @@ Scissor allows users to also generate QR codes for shortened URLs. Users can dow
 - **Analytics**:		
 Scissor provides basic analytics that allows users to track their shortened URL's performance. Users can see how many clicks their shortened URL has received and where the clicks are coming from. We need to track when a URL is used.
 - **Link History**:
-Scissor allows users to see the history of links they’ve created so they can easily find and reuse links they have previously created, including ones they have previously deleted.
+Scissor allows users to see the history of links they’ve created so they can easily find and reuse links they have previously created.
+- **Restore Deleted Links**:
+  Scissor allows users to restore deleted links if they so choose.
 
  This project uses **Flask-RESTX** and **Python** for the backend and **React** and **JavaScript** for the frontend. The backend and frontend have their own folders and dependencies.
 
