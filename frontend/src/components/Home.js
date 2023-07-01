@@ -10,6 +10,8 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
+import Image from 'react-bootstrap/Image';
+import Footer from "./Footer";
 
 
 const LoggedInHome = () => {
@@ -19,7 +21,6 @@ const LoggedInHome = () => {
     const [show, setShow] = useState(false)
     const [showAlert, setShowAlert] = useState(false)
     const handleClose = () => setShow(false);
-    const [serverResponse, setServerResponse] = useState('');
     const [updateResponse, setUpdateResponse] = useState('');
     const [alertVariant, setAlertVariant] = useState('');
     const [fullscreen, setFullscreen] = useState(true);
@@ -39,7 +40,6 @@ const LoggedInHome = () => {
     const {
         register,
         handleSubmit,
-        reset,
         setValue,
         formState: { errors },
     } = useForm();
@@ -62,7 +62,7 @@ const LoggedInHome = () => {
                     setUrls(data)
                 })
                 .catch(err => console.log(err))
-        }, []
+        }
     );
 
     const getUserUrls = () => {
@@ -253,7 +253,7 @@ const LoggedInHome = () => {
                         </Button>
                     </Modal.Footer>
                 </Modal>
-                <h4 className="text-center">You have {urls.length} URLs</h4>You have 
+                <h4 className="text-center">You have {urls.length} URLs</h4>
                 <Container>
                     <Row>
                         {
@@ -282,14 +282,85 @@ const LoggedInHome = () => {
 const LoggedOutHome = () => {
     return (
         <>
-            <h1 className="text-center">Welcome To Scissor</h1>
-            <Link to='/register' className="btn btn-primary">Get Started</Link>
+            <h1 className="text-center mb-5">Welcome To Scissor</h1>
+            <Container>
+                <Row className="mb-5">
+                    <div className="d-flex align-items-center">
+                        <Col>
+                            <p className="text-center fst-italic">
+                                Scissor is the URL shortener app that does it all.
+                                Create, customize, and track your links with Scissor.
+                                Scissor helps you shorten your URLs, generate QR codes, and get analytics on your clicks.
+                                Scissor is the best way to optimize your online marketing and grow your business.
+                            </p>
+                            <div className="text-center">
+                                <Link to='/register' className="btn btn-primary">Get Started</Link>
+                            </div>
+                        </Col>
+                        <Col><Image src="home_images/no_domain.png" rounded fluid /></Col>
+                    </div>
+                </Row>
+
+                <Row className="mb-5">
+                    <div className="d-flex align-items-center">
+                        <Col>
+                            <Image src="home_images/shorten.png" rounded fluid />
+                        </Col>
+                        <Col>
+                            <p className="text-center fst-italic">
+                                Scissor makes it easy to create a QR code for your shortened URL, so you can share it with your offline audience.
+                                Scissor generates a scannable code for your link and displays it next to the link, so you can download it or print it with one click.
+                                Scissor helps you connect your online and offline marketing and reach more customers.
+                            </p>
+                        </Col>
+                    </div>
+                </Row>
+                <Row className="mb-5">
+                    <div className="d-flex align-items-center">
+
+                        <Col>
+                            <p className="text-center fst-italic">With Scissor, you can not only shorten your long URLs, but also track where your clicks are coming from.
+                                Scissor provides you with detailed analytics of the clicks, so you can optimize your marketing campaigns and reach your target audience.
+                                Scissor helps you cut through the noise and get insights on your online performance.
+                            </p></Col>
+                        <Col><Image src="home_images/clicks.png" rounded fluid /></Col>
+                    </div>
+                </Row>
+                <Row className="mb-5">
+                    <div className="d-flex align-items-center">
+
+                        <Col><Image src="home_images/custom_domain.png" rounded fluid /></Col>
+                        <Col>
+                            <p className="text-center fst-italic">
+                                Scissor lets you customize your shortened URLs with your own domain name, so you can build your brand and increase your trust.
+                                Whether you want to use your company name, your product name, or your slogan, Scissor allows you to create memorable and professional links that suit your business.
+                                Scissor helps you stand out from the crowd and grow your online presence.
+                            </p>
+                        </Col>
+                    </div>
+
+                </Row>
+                <Row className="mb-5">
+                    <div className="d-flex align-items-center">
+
+                        <Col>
+                            <p className="text-center fst-italic">
+                                Scissor gives you the flexibility to update your shortened URLs anytime, without changing the link.
+                                Whether you want to redirect your visitors to a different page or fix a typo, Scissor allows you to edit your destination URL and keep your link intact.
+                                Scissor helps you avoid broken links and maintain your online reputation.
+                            </p>
+                        </Col>
+                        <Col><Image src="home_images/update.png" rounded fluid /></Col>
+                    </div>
+                </Row>
+            </Container>
+            <Footer />
         </>
     )
 }
 
 const HomePage = () => {
-    const [logged, session] = useAuth();
+    const [logged] = useAuth();
 
 
     return (

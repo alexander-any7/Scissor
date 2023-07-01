@@ -19,13 +19,18 @@ const ShortenUrl = () => {
     const shortenUrl = (data) => {
         const tokens = JSON.parse(localStorage.getItem('REACT_TOKEN_AUTH_KEY'))
         const access_token = tokens.access_token
+        const body = {
+            url: data.url,
+            title: data.title,
+            generate_qr_code: data.generateQrCode
+        }
         const requestOptions = {
             method: "POST",
             headers: {
                 "content-type": "application/json",
                 "Authorization": `Bearer ${access_token}`
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(body)
         }
         fetch('/urls/shorten-url', requestOptions)
             .then(res => res.json())
@@ -82,8 +87,14 @@ const ShortenUrl = () => {
                     <br></br>
                     {errors.title?.type === "maxLength" && <span className="text-danger">Title cannot be more than 20 characters</span>}
                 </Form.Group>
+                <Form.Check // prettier-ignore
+                    type="switch"
+                    id="updateProfileForm.generateQrCode"
+                    label="Generate QR Code"
+                    {...register('generateQrCode')}
+                />
                 <Form.Group>
-                    <div className="">
+                    <div className="mt-3">
                         <Button variant="primary" as="sub" onClick={handleSubmit(shortenUrl)}>
                             Shorten
                         </Button>

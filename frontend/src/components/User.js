@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import { useForm } from "react-hook-form";
-
+import ListGroup from 'react-bootstrap/ListGroup';
 
 
 const UserProfile = () => {
@@ -18,12 +17,9 @@ const UserProfile = () => {
     const [showAlert, setShowAlert] = useState(false);
     const [updateResponse, setUpdateResponse] = useState('');
 
-
-
     const {
         register,
         handleSubmit,
-        reset,
         setValue,
         formState: { errors },
     } = useForm();
@@ -48,7 +44,7 @@ const UserProfile = () => {
                     setUserDetails(data)
                 })
                 .catch(err => console.log(err))
-        }, []
+        }
     );
 
     const updateProfile = (data) => {
@@ -79,6 +75,7 @@ const UserProfile = () => {
                 if (data.username) {
                     setUserDetails(data)
                     handleClose()
+                    window.location.reload()
                 }
             })
     }
@@ -164,13 +161,26 @@ const UserProfile = () => {
                 :
                 ''
             }
-            <h1>My Profile</h1>
-            {userDetails.email && <p>Email: {userDetails.email}</p>}
-            {userDetails.username && <p>Username: {userDetails.username}</p>}
-            {userDetails.firstname && <p>FirstName: {userDetails.firstname}</p>}
-            {userDetails.lastname && <p>LastName: {userDetails.lastname}</p>}
-            {userDetails.custom_domain && <p>Custom Domain: {userDetails.custom_domain}</p>}
-            <Button variant="primary" as="sub" onClick={handleShow}>
+            <h1 className="text-center mb-5">My Profile</h1>
+            <ListGroup as="ul">
+                {userDetails.email &&
+                    <ListGroup.Item as="li" className="fst-italic"><span className="fw-semibold fst-normal">Email: </span>{userDetails.email}</ListGroup.Item>
+                }
+                {userDetails.username &&
+                    <ListGroup.Item as="li" className="fst-italic"><span className="fw-semibold fst-normal">Username: </span>{userDetails.username}</ListGroup.Item>
+                }
+                {userDetails.firstname &&
+                    <ListGroup.Item as="li" className="fst-italic"><span className="fw-semibold fst-normal">First Name: </span>{userDetails.firstname}</ListGroup.Item>
+                }
+                {userDetails.lastname &&
+                    <ListGroup.Item as="li" className="fst-italic"><span className="fw-semibold fst-normal">Last Name: </span>{userDetails.lastname}</ListGroup.Item>
+                }
+                {userDetails.custom_domain &&
+                    <ListGroup.Item as="li" className="fst-italic"><span className="fw-semibold fst-normal">My Custom Domain: </span>{userDetails.custom_domain}</ListGroup.Item>
+                }
+            </ListGroup>
+
+            <Button variant="primary" as="sub" onClick={handleShow} className="mt-4">
                 Update Profile
             </Button>
         </div>

@@ -48,7 +48,7 @@ const RegisterPage = () => {
                         setAlertVariant('success')
                         setShow(true)
                     }
-                    
+
                 })
                 .catch(err => console.log(err))
             reset()
@@ -97,14 +97,14 @@ const RegisterPage = () => {
                     <Form.Group className="mb-3" controlId="registerForm.FirstName">
                         <Form.Label>First Name</Form.Label>
                         <Form.Control type="text"
-                            {...register('firstname', {maxLength: 45 })}
+                            {...register('firstname', { maxLength: 45 })}
                         />
                         {errors.firstname?.type === "maxLength" && <span className="text-danger">First Name cannot be more than 45 characters</span>}
                     </Form.Group>
                     <Form.Group className="mb-3" controlId="registerForm.LastName">
                         <Form.Label>Last Name</Form.Label>
                         <Form.Control type="text"
-                            {...register('lastname', {maxLength: 45 })}
+                            {...register('lastname', { maxLength: 45 })}
                         />
                         {errors.lastname?.type === "maxLength" && <span className="text-danger">Last Name cannot be more than 45 characters</span>}
                     </Form.Group>

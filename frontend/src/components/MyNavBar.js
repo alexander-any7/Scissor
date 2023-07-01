@@ -27,14 +27,14 @@ const LoggedOutLinks = () => {
 
 const MyNavBar = () => {
 
-  const [logged, session] = useAuth();
+  const [logged] = useAuth();
 
   return (
     <Navbar bg="primary" data-bs-theme="dark">
       <Container>
-        <Navbar.Brand href="/">Scissor</Navbar.Brand>
+        <Navbar.Brand href="/">SCut</Navbar.Brand>
         <Nav className="me-auto">
-        {logged?<LoggedInLinks/>:<LoggedOutLinks/>}
+          {logged ? <LoggedInLinks /> : <LoggedOutLinks />}
         </Nav>
       </Container>
     </Navbar>
