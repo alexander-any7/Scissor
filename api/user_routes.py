@@ -40,6 +40,10 @@ user_update_output = user_namespace.model(
 
 @user_namespace.route("/profile")
 class Profile(Resource):
+    """Get a User object
+    Accepts [GET] request
+    Returns a serialized User object
+    """
     @jwt_required()
     @user_namespace.expect(user_update_input)
     @user_namespace.marshal_with(user_update_output)
@@ -53,7 +57,11 @@ class Profile(Resource):
 
 
 @user_namespace.route("/update-profile")
-class UpdateProfile(Resource):  # noqa
+class UpdateProfile(Resource):
+    """Update a User object
+    Accepts [PUT] request
+    Returns a serialized User object
+    """
     @jwt_required()
     @user_namespace.expect(user_update_input)
     @user_namespace.marshal_with(user_update_output)

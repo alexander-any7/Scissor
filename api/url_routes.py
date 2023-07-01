@@ -16,7 +16,7 @@ from api.utils import cache, db, limiter, convert_referrer
 
 DEFAULT_DOMAIN = config("DEFAULT_DOMAIN")
 
-# Get the directory of the script file
+# Get the directory where qr code images will be stored
 script_dir = os.path.dirname(os.path.abspath(__file__))
 qr_codes_dir = f"{os.path.dirname(BASE_DIR)}\\frontend\\public\\qr_codes"
 
@@ -71,6 +71,10 @@ deleted_url_output = url_namespace.model(
 
 @url_namespace.route("/shorten-url")
 class ShortenUrl(Resource):
+    """Shorten a URL
+    Accepts [POST] requests
+    Returns a serialized URL object
+    """
     @limiter.limit("100/minute")
     @cache.cached(timeout=60)
     @jwt_required()
@@ -109,7 +113,11 @@ class ShortenUrl(Resource):
 
 
 @url_namespace.route("/all-urls")
-class AllUrls(Resource):  # noqa
+class AllUrls(Resource):
+    """Get all shortened URLs
+    Accepts [GET] requests
+    Returns multiple serialized URL objects
+    """
     @limiter.limit("10/minute")
     @cache.cached(timeout=60)
     @jwt_required()
@@ -126,7 +134,11 @@ class AllUrls(Resource):  # noqa
 
 
 @url_namespace.route("/deleted-urls")
-class DeletedUrls(Resource):  # noqa
+class DeletedUrls(Resource):
+    """Get all deleted URLs
+    Accepts [GET] requests
+    Returns multiple serialized Deleted URL objects
+    """
     @limiter.limit("10/minute")
     @cache.cached(timeout=60)
     @jwt_required()
@@ -138,7 +150,11 @@ class DeletedUrls(Resource):  # noqa
 
 
 @url_namespace.route("/restore-url/<int:id>")
-class RestoreDeletedUrl(Resource):  # noqa
+class RestoreDeletedUrl(Resource):
+    """Restore a deleted URL
+    Accepts [GET] requests
+    Returns a serialized URL object
+    """
     @limiter.limit("10/minute")
     @cache.cached(timeout=60)
     @jwt_required()
@@ -176,7 +192,11 @@ class RestoreDeletedUrl(Resource):  # noqa
 
 
 @url_namespace.route("/<string:uuid>")
-class Urls(Resource):  # noqa
+class Urls(Resource):
+    """RUD a URL
+    Accepts [GET, PUT, DELETE] requests
+    Returns a serialized URL object
+    """
     @limiter.limit("10/minute")
     @cache.cached(timeout=60)
     @jwt_required()
@@ -241,7 +261,10 @@ class Urls(Resource):  # noqa
 
 
 @url_namespace.route("/generate-qr-code/<string:uuid>")
-class GenerateQRCode(Resource):  # noqa
+class GenerateQRCode(Resource):
+    """Generate a QR Code for a URL
+    Accepts [GET] requests
+    """
     @limiter.limit("10/minute")
     @jwt_required()
     def get(self, uuid):
@@ -273,7 +296,10 @@ class GenerateQRCode(Resource):  # noqa
 
 
 @redirect_namespace.route("<string:short_url>")
-class Redirect(Resource):  # noqa
+class Redirect(Resource):
+    """Redirect to the original long url
+    Accepts [GET] requests
+    """
     @limiter.limit("100/minute")
     def get(self, short_url):
         request_domain = request.host
@@ -312,6 +338,10 @@ class Redirect(Resource):  # noqa
 
 @redirect_namespace.route("/hello/test/")
 class Test(Resource):
+    """Test Route
+    Accepts [GET] requests
+    Returns a success response
+    """
     @limiter.limit("10/minute")
     @cache.cached(timeout=60)
     def get(self):

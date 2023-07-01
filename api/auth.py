@@ -78,6 +78,10 @@ user_password_reset_confirm = auth_namespace.model(
 
 @auth_namespace.route("/register")
 class Register(Resource):
+    """Register a user
+    Accepts [POST] requests
+    Returns a Serialized User object
+    """
     @auth_namespace.expect(user_register_input)
     @auth_namespace.marshal_with(user_register_output)
     def post(self):
@@ -120,7 +124,11 @@ class Register(Resource):
 
 
 @auth_namespace.route("/login")
-class Login(Resource):  # noqa
+class Login(Resource):
+    """Login a user
+    Accepts [POST] requests
+    Returns access and refresh tokens
+    """
     @auth_namespace.expect(user_login_input)
     @auth_namespace.marshal_with(user_login_output)
     def post(self):
@@ -144,7 +152,11 @@ class Login(Resource):  # noqa
 
 
 @auth_namespace.route("/password-reset-request")
-class PasswordReset(Resource):  # noqa
+class PasswordReset(Resource):
+    """Request a password reset email
+    Accepts [POST] requests
+    Returns a success response
+    """
     @auth_namespace.expect(password_reset_input)
     def post(self):
         data: dict = request.get_json()
@@ -168,7 +180,11 @@ class PasswordReset(Resource):  # noqa
 
 
 @auth_namespace.route("/password-reset/<string:token>/<string:uuid>/confirm")
-class ConfirmPasswordReset(Resource):  # noqa
+class ConfirmPasswordReset(Resource):
+    """Confirms the password rest mail
+    Accepts [POST] requests
+    Returns a success response
+    """
     @auth_namespace.expect(user_password_reset_confirm)
     def post(self, token: str, uuid: str):
         session = db.session
@@ -192,7 +208,11 @@ class ConfirmPasswordReset(Resource):  # noqa
 
 
 @auth_namespace.route("/reset-password")
-class ResetPassword(Resource):  # noqa
+class ResetPassword(Resource):
+    """Reset the password of a logged in user
+    Accepts [POST] requests
+    Returns a success response
+    """
     @auth_namespace.expect(logged_in_user_password_reset_input)
     @jwt_required()
     def post(self):
@@ -221,7 +241,11 @@ class ResetPassword(Resource):  # noqa
 
 
 @auth_namespace.route("/refresh")
-class Refresh(Resource):  # noqa
+class Refresh(Resource):
+    """
+    Accepts [POST] requests
+    Returns a new access token
+    """
     @jwt_required(refresh=True)
     def post(self):
         current_user = get_jwt_identity()

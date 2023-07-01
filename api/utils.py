@@ -161,6 +161,9 @@ def update_qr_codes(user_id, base_url, model):
 
 
 def convert_referrer(url):
+    """Convert url referrer string to a JSON object
+    Args url: URL
+    """
     try:
         referrer = json.loads(url.referrer)
         url.referrer = referrer
