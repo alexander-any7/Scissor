@@ -13,9 +13,11 @@ Scissor allows users to also generate QR codes for shortened URLs. Users can dow
 - **Analytics**:		
 Scissor provides basic analytics that allows users to track their shortened URL's performance. Users can see how many clicks their shortened URL has received and where the clicks are coming from. We need to track when a URL is used.
 - **Link History**:
-Scissor allows users to see the history of links they’ve created so they can easily find and reuse links they have previously created
+Scissor allows users to see the history of links they’ve created so they can easily find and reuse links they have previously created, including ones they have previously deleted.
 
-### Setup
+ This project uses **Flask-RESTX** and **Python** for the backend and **React** and **JavaScript** for the frontend. The backend and frontend have their own folders and dependencies.
+
+## Backend Setup
 Set up environment variables using the `.env_example` file.
 
 ### Installation 
@@ -46,3 +48,17 @@ This project uses `Flake8` to ensure code quality and adherence to coding standa
 ```
 Flake8
 ```
+
+## Frontend Setup
+1. cd into the frontend folder
+   ```
+   cd frontend
+   ```
+2. Install the packages
+   ```
+   npm install
+   ```
+3. Run the dev server
+   ```
+   npm start
+   ```
